@@ -1,0 +1,144 @@
+{% extends "layout.html" %} 
+{% block body %}
+
+<div class="container">
+    <!-- Dataset info modal -->
+    <div class="modal fade" id="dataInfoModal" tabindex="-1">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Dataset info</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    <b>Dataset generator.</b>
+                    This is a simple generator of synthetic datasets.
+                    It is kept simple because the only purpose of the dataset is to 
+                    showcase some machine learning capabilities.
+                </p>
+                <p>
+                    <b>Controls.</b>
+                    You may choose the number of predictive features and dataset size (number of rows).
+                    Additionally, you may introduce dataset imbalance via target ratio.
+                    Finally, you may split data into train and test sets in various ratios.
+                </p>
+                <p>
+                    <b>Datasets.</b>
+                    Features are generated according to a multivariate normal distribution.
+                    Correlation matrix is randomly generated with values distributed uniformly on (-1,1).
+                    Errors are normal and uncorrelated.
+                    To build binary classification targets we sum up values of all features and assign 
+                    target value 1 if the sum is non-negative and 0 otherwise.
+                </p>
+                <p>
+                    <b>Limitations.</b>
+                    To keep things simple, there are no redundant features nor is there control over 
+                    feature distributions, correlations, error distributions, or similar parameters.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="column col-lg-4">
+            <H4>Prepare data 
+                <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#dataInfoModal">
+                    <i data-feather="info"></i>
+                </button>
+            </H4>
+            <form method="POST" action="" id="data_form">
+                <label for="ncols" class="form-label">Number of features <span id="features_badge" class="badge rounded-pill bg-secondary">{{data_params['ncols']}}</span> </label>
+                <input id="ncols" name="ncols" type="range" class="form-range" value="{{data_params['ncols']}}" min="0" max="1000" step="5" oninput="updateParams(this)">
+                <br>
+                <label for="nrows" class="form-label">Dataset size  <span id="rows_badge" class="badge rounded-pill bg-secondary">{{data_params['nrows']}}</span> </label>
+                <input id="nrows" name="nrows" type="range" class="form-range" value="{{data_params['nrows']}}" min="0" max="10000" step="1000" oninput="updateParams(this)">
+                <br>
+                <label for="tgt_ratio" class="form-label">Target share  <span id="target_badge" class="badge rounded-pill bg-secondary">{{data_params['tgt_ratio']}}%</span> </label>
+                <input id="tgt_ratio" name="tgt_ratio" type="range" class="form-range" value="{{data_params['tgt_ratio']}}" min="0" max="100" step="1" oninput="updateParams(this)">
+                <br>
+                <label for="train_ratio" class="form-label">Train-test split  <span id="split_badge" class="badge rounded-pill bg-secondary">{{data_params['train_ratio']}}-{{100-data_params['train_ratio']}}</span> </label>
+                <input id="train_ratio" name="train_ratio" type="range" class="form-range" value="{{data_params['train_ratio']}}" min="0" max="100" step="5" oninput="updateParams(this)">
+                <br>
+            </form>
+        </div>
+        <div class="column col-lg-8">
+            <H4>Selected dataset</H4>
+            <div id="columns_info">There are {{data_params['ncols']}} predictive features.</div>
+            <div id="rows_info">There are {{data_params['nrows']}} rows in total.</div>
+            <div id="target_info">Target share is {{data_params['tgt_ratio']}}%.</div>
+            <div id="split_info">Train-test split is {{data_params['train_ratio']}}-{{100-data_params['train_ratio']}}.</div>
+            <div>Detailed breakdown of rows:</div>
+            <table id="data_table" class="table table-hover">
+                <thead>
+                    <th></th>
+                    <th>Train set</th>
+                    <th>Test set</th>
+                    <th>Total</th>
+                </thead>
+                <tbody>
+                    <tr> <td>Target rows</td> <td>2000</td> <td>500</td> <td>2500</td> </tr>
+                    <tr> <td>Non-target rows</td> <td>2000</td> <td>500</td> <td>2500</td> </tr>
+                    <tr> <td>Total rows</td> <td>4000</td> <td>1000</td> <td>5000</td> </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="column col-lg-4">
+            <H4>Build Random Forest model</H4>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="switch" onchange="switchModeling()" checked="{{data_params['switch']}}">
+                <label class="form-check-label" for="switch">Automatic optimization</label>
+            </div>
+            <form method="POST" action="" id="model_form">
+                <label for="ntrees" class="form-label">Number of estimators <span id="ntrees_badge" class="badge rounded-pill bg-secondary">100</span> </label>
+                <input id="ntrees" name="ntrees" type="range" class="form-range" value="100" min="0" max="1000" step="5" oninput="updateParams(this)" disabled>
+                <br>
+                <label for="max_depth" class="form-label">Max tree depth <span id="depth_badge" class="badge rounded-pill bg-secondary">5</span> </label>
+                <input id="max_depth" name="max_depth" type="range" class="form-range" value="5" min="1" max="20" step="1" oninput="updateParams(this)" disabled>
+                <br>
+                <label for="min_samples_split" class="form-label">Min node size <span id="nodesize_badge" class="badge rounded-pill bg-secondary">100</span> </label>
+                <input id="min_samples_split" name="min_samples_split" type="range" class="form-range" value="100" min="0" max="1000" step="5" oninput="updateParams(this)" disabled>
+                <br>
+                <label for="min_samples_leaf" class="form-label">Min leaf size <span id="leafsize_badge" class="badge rounded-pill bg-secondary">100</span> </label>
+                <input id="min_samples_leaf" name="min_samples_leaf" type="range" class="form-range" value="100" min="0" max="1000" step="5" oninput="updateParams(this)" disabled>
+                <br>
+                <label for="max_features" class="form-label">Max features used per tree <span id="maxfeats_badge" class="badge rounded-pill bg-secondary">{{data_params['ncols']//10}}</span> </label>
+                <input id="max_features" name="max_features" type="range" class="form-range" value={{data_params['ncols']}} min="1" max={{data_params['ncols']}} step="1" oninput="updateParams(this)" disabled>
+                <br>
+            </form>
+    
+            <button class="btn btn-primary" onclick="submitParams()">Build</button>
+        </div>
+        <div class="column col-lg-8">
+            <H4>Model details</H4>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="column col-lg-4">
+            <H4>Evaluate model</H4>
+        </div>
+        <div class="column col-lg-8">
+            <H4>Model scores</H4>
+        </div>
+    </div>
+    <hr>
+</div>
+
+<!-- custom js -->
+<script type="text/javascript" src="./static/data_preparation.js"></script>
+
+<script>
+    // update page with requested parameters
+    let params = {{ data_params|tojson }};
+    updateTable();
+</script>
+
+{% endblock %}

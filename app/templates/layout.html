@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Meta tags required by Bootstrap-->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="../static/bootstrap 5-0-0-beta.css">
+    <!-- feather icons -->
+    <script src="../static/feather.js"></script>
+    <!-- custom CSS -->
+    <link rel="stylesheet" href="../static/custom style.css">
+    <!-- load plotly from local file. latest version as of 22.2.2021 -->
+    <script src="../static/plotly.js"></script>
+
+    <title>Bayesian optimization of Random Forests - a simple demonstration</title>
+</head>
+
+<body>
+
+    <!-- navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-content">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbar-content">
+                <div class="navbar-nav">
+                    <a href="{{url_for('home')}}" {% if url_for(request.endpoint)==url_for( 'home') %} class="nav-link active" {% else %} class="nav-link" {% endif %}> Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- flash messages appear here -->
+    {% with messages = get_flashed_messages(with_categories=true) %} 
+        {% if messages %} 
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <btn type="button" class="btn-close" data-bs-dismiss="alert">
+                        <btn>
+                </div>
+            {% endfor %} 
+        {% endif %} 
+    {% endwith %}
+    <!-- individual page content -->
+    {% block body %} 
+    {% endblock %}
+
+    <!-- javascript required by the bootstrap -->
+    <script src="../static/jquery 3-5-1.js"></script>
+    <script src="../static/popper 2-5-4.js"></script>
+    <script src="../static/bootstrap 5-0-0-beta.js"></script>
+
+    <!-- include feather icons -->
+    <script>
+        feather.replace()
+    </script>
+
+</body>
+
+</html>
