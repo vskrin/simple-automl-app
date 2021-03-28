@@ -53,10 +53,10 @@
             </H4>
             <form method="POST" action="" id="data_form">
                 <label for="ncols" class="form-label">Number of features <span id="features_badge" class="badge rounded-pill bg-secondary">{{data_params['ncols']}}</span> </label>
-                <input id="ncols" name="ncols" type="range" class="form-range" value="{{data_params['ncols']}}" min="0" max="1000" step="5" oninput="updateParams(this)">
+                <input id="ncols" name="ncols" type="range" class="form-range" value="{{data_params['ncols']}}" min="1" max="200" step="1" oninput="updateParams(this)">
                 <br>
                 <label for="nrows" class="form-label">Dataset size  <span id="rows_badge" class="badge rounded-pill bg-secondary">{{data_params['nrows']}}</span> </label>
-                <input id="nrows" name="nrows" type="range" class="form-range" value="{{data_params['nrows']}}" min="0" max="10000" step="1000" oninput="updateParams(this)">
+                <input id="nrows" name="nrows" type="range" class="form-range" value="{{data_params['nrows']}}" min="0" max="2000" step="100" oninput="updateParams(this)">
                 <br>
                 <label for="tgt_ratio" class="form-label">Target share  <span id="target_badge" class="badge rounded-pill bg-secondary">{{data_params['tgt_ratio']}}%</span> </label>
                 <input id="tgt_ratio" name="tgt_ratio" type="range" class="form-range" value="{{data_params['tgt_ratio']}}" min="0" max="100" step="1" oninput="updateParams(this)">
@@ -81,9 +81,9 @@
                     <th>Total</th>
                 </thead>
                 <tbody>
-                    <tr> <td>Target rows</td> <td>2000</td> <td>500</td> <td>2500</td> </tr>
-                    <tr> <td>Non-target rows</td> <td>2000</td> <td>500</td> <td>2500</td> </tr>
-                    <tr> <td>Total rows</td> <td>4000</td> <td>1000</td> <td>5000</td> </tr>
+                    <tr> <td>Target rows</td> <td>200</td> <td>50</td> <td>250</td> </tr>
+                    <tr> <td>Non-target rows</td> <td>200</td> <td>50</td> <td>250</td> </tr>
+                    <tr> <td>Total rows</td> <td>400</td> <td>100</td> <td>500</td> </tr>
                 </tbody>
             </table>
         </div>
@@ -97,17 +97,17 @@
                 <label class="form-check-label" for="switch">Automatic optimization</label>
             </div>
             <form method="POST" action="" id="model_form">
-                <label for="ntrees" class="form-label">Number of estimators <span id="ntrees_badge" class="badge rounded-pill bg-secondary">100</span> </label>
-                <input id="ntrees" name="ntrees" type="range" class="form-range" value="100" min="0" max="1000" step="5" oninput="updateParams(this)" disabled>
+                <label for="ntrees" class="form-label">Number of estimators <span id="ntrees_badge" class="badge rounded-pill bg-secondary">{{data_params['ntrees']}}</span> </label>
+                <input id="ntrees" name="ntrees" type="range" class="form-range" value="{{data_params['ntrees']}}" min="0" max="{{data_params['ncols']}}" step="5" oninput="updateParams(this)" disabled>
                 <br>
-                <label for="max_depth" class="form-label">Max tree depth <span id="depth_badge" class="badge rounded-pill bg-secondary">5</span> </label>
-                <input id="max_depth" name="max_depth" type="range" class="form-range" value="5" min="1" max="20" step="1" oninput="updateParams(this)" disabled>
+                <label for="max_depth" class="form-label">Max tree depth <span id="depth_badge" class="badge rounded-pill bg-secondary">{{data_params['max_depth']}}</span> </label>
+                <input id="max_depth" name="max_depth" type="range" class="form-range" value="{{data_params['max_depth']}}" min="1" max="20" step="1" oninput="updateParams(this)" disabled>
                 <br>
-                <label for="min_samples_split" class="form-label">Min node size <span id="nodesize_badge" class="badge rounded-pill bg-secondary">100</span> </label>
-                <input id="min_samples_split" name="min_samples_split" type="range" class="form-range" value="100" min="0" max="1000" step="5" oninput="updateParams(this)" disabled>
+                <label for="min_samples_split" class="form-label">Min node size <span id="nodesize_badge" class="badge rounded-pill bg-secondary">{{data_params['min_samples_split']}}</span> </label>
+                <input id="min_samples_split" name="min_samples_split" type="range" class="form-range" value="{{data_params['min_samples_split']}}" min="0" max="{{data_params['nrows']//2}}" step="5" oninput="updateParams(this)" disabled>
                 <br>
-                <label for="min_samples_leaf" class="form-label">Min leaf size <span id="leafsize_badge" class="badge rounded-pill bg-secondary">100</span> </label>
-                <input id="min_samples_leaf" name="min_samples_leaf" type="range" class="form-range" value="100" min="0" max="1000" step="5" oninput="updateParams(this)" disabled>
+                <label for="min_samples_leaf" class="form-label">Min leaf size <span id="leafsize_badge" class="badge rounded-pill bg-secondary">{{data_params['min_samples_leaf']}}</span> </label>
+                <input id="min_samples_leaf" name="min_samples_leaf" type="range" class="form-range" value="{{data_params['min_samples_leaf']}}" min="0" max="{{data_params['nrows']//2}}" step="5" oninput="updateParams(this)" disabled>
                 <br>
                 <label for="max_features" class="form-label">Max features used per tree <span id="maxfeats_badge" class="badge rounded-pill bg-secondary">{{data_params['ncols']//10}}</span> </label>
                 <input id="max_features" name="max_features" type="range" class="form-range" value={{data_params['ncols']}} min="1" max={{data_params['ncols']}} step="1" oninput="updateParams(this)" disabled>

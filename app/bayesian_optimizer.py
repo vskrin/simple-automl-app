@@ -1,29 +1,41 @@
 from skopt import Space, gp_minimize
 from skopt.space import Integer
 from skopt.utils import use_named_args
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import precision_score, accuracy_score, recall_score, f1_score, roc_curve, auc
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.utils import resample
+from time import perf_counter
 import numpy
 import pandas
 
 # global variables
-param_grid = [  Integer(2,10, name="max_depth"),
-                Integer(20, 250, name="min_samples_split"),
-                Integer(10, 100, name="min_samples_leaf")
-                ]
-tree = DecisionTreeClassifier()
-train_data = []
-valid_data =  []
-n_resamples = 50
-n_steps = 20
+# param_grid is set up in optimize(). instantiated here to give parameter names for objective().
+param_grid = [Integer(0, 1, name="n_estimators"),
+            Integer(0, 1, name="max_depth"),
+            Integer(0, 1, name="min_samples_split"),
+            Integer(0, 1, name="min_samples_leaf"),
+            Integer(0, 1, name="max_features")
+            ]
+model = RandomForestClassifier()
+# lists of resampled train and test datasets
+train_x, train_y = [], []
+valid_x, valid_y = [], []
+n_resamples = 20
+n_steps = 15
 
 # Bayesian optimization via Gaussian process
-def optimize(data):
-    global train_data, valid_data
-    train_data = get_datasets(data, n_resamples)
-    valid_data = get_datasets(data, n_resamples)
+def optimize(features, target, data_params):
+    global param_grid, train_x, train_y, valid_x, valid_y
+    train_x, train_y = get_datasets(features, target, n_resamples)
+    valid_x, valid_y = get_datasets(features, target, n_resamples)
+    param_grid = [Integer(2,data_params['ncols'], name="n_estimators"),
+                Integer(2,10, name="max_depth"),
+                Integer(10, data_params['nrows']//2, name="min_samples_split"),
+                Integer(5, data_params['nrows']//3, name="min_samples_leaf"),
+                Integer(1, data_params['ncols']//3, name="max_features")
+                ]
+    time = perf_counter()
     result = gp_minimize(   
                     objective, 
                     param_grid,
@@ -34,41 +46,58 @@ def optimize(data):
                     random_state=0,
                     verbose=False
                     )
+    print(f"Parameter search took {perf_counter()-time:.3f}s to complete.")
     return result
 
 # objective function - minimized for the best model
 @use_named_args(param_grid)
 def objective(**params):
-    tree.set_params(**params)
-    scores = score_models(tree, train_data, valid_data, metric="rec")
+    """
+    For given choice of parameters it trains multiple models on bootstrap
+    resamples of the train set. It then evaluates them on other resamples
+    (validation) and scores them. Average score on validation is taken as
+    value of the objective function for the given parameter choice.
+    """
+    model.set_params(**params)
+    scores = score_bumpers(model, train_x, train_y, valid_x, valid_y, metric="f1")
     return -numpy.median(scores)
 
-# get Bootstrap resamples of the training set
-def get_datasets(data, n_resamples):
-    datasets = []
-    for i in range(n_resamples):
-        new_resample = resample(
-                            data, 
-                            replace=True,
-                            stratify=data['Target']
-                            )
-        datasets.append(new_resample)
-    return datasets
-
-#score model on datasets
-def score_models(tree, train, validation, metric="f1"):
+def get_datasets(features, target, n_resamples):
     """
-    Takes DecisionTreeClassifier, a list of training sets, a list of validation sets,
-    and a scoring metric. Fits classifiers on training sets, and scores them on validation.
-    Returns median score.
+    Produces bootstrap resamples of the original dataset.
     Args:
-        * tree: sklearn.DecisionTreeClassifier
-        * train: list of pandas.Dataframes. Same length as validation.
-        * validation: list of pandas.Dataframes. Same length as train.
+        * features: original numpy array of predictive features
+        * target: original numpy array of target labels
+        * n_resamples: number of new resampled datasets to create
+    Returns:
+        * feat_resamples, tgt_resamples: lists of new features/target 
+        resampled datasets
+    """
+    feat_resamples, tgt_resamples = [], []
+    for i in range(n_resamples):
+        feat_resample, tgt_resample = resample(
+                                        features, target, 
+                                        replace=True,
+                                        stratify=target
+                                        )
+        feat_resamples.append(feat_resample)
+        tgt_resamples.append(tgt_resample)
+    return feat_resamples, tgt_resamples
+
+
+def score_bumpers(model, train_x, train_y, valid_x, valid_y, metric="f1"):
+    """
+    Takes scikit-learn classifier, a list of training sets, a list of validation sets,
+    and a scoring metric. Fits classifiers on the training sets, and scores them on validation.
+    Returns a list of scores.
+    Args:
+        * model: scikit-learn classifier
+        * train_x, train_y: lists of numpy arrays with training data. Same length as validation.
+        * valid_x, valid_y: lists of numpy arrays with validation data. Same length as train.
         * metric: string. Can be "prec", "acc", "rec", "f1", or "auc" for 
         precision, accuracy, recall, f1-score, and area under curve, respectively.
     Returns:
-        * median model score (over validation datasets)
+        * scores: list of model scores on validation
     """
     scores = []
     metric_dict = { 'prec': precision_score,
@@ -77,18 +106,16 @@ def score_models(tree, train, validation, metric="f1"):
                     'f1': f1_score
                     }
     try:
-        n_resamples = len(train)
+        n_resamples = len(train_x)
         for j in range(n_resamples):
-            tree.fit(train[j].drop(columns="Target"),
-                    train[j]["Target"]
-            )
+            model.fit(train_x[j], train_y[j])
             if metric=="auc":
-                predicted_proba = tree.predict_proba(validation[j].drop(columns="Target"))[:,1]
-                fpr, tpr, _ = roc_curve(validation[j]["Target"], predicted_proba)
+                predicted_proba = model.predict_proba(valid_x[j])[:,1]
+                fpr, tpr, _ = roc_curve(valid_y[j], predicted_proba)
                 score = auc(fpr,tpr)
             else:
-                predicted_labels = tree.predict(train[j].drop(columns="Target"))
-                score = metric_dict[metric](validation[j]["Target"], predicted_labels)
+                predicted_labels = model.predict(valid_x[j])
+                score = metric_dict[metric](valid_y[j], predicted_labels)
             if score==numpy.nan:
                 scores.append(0)
             else:
@@ -97,7 +124,7 @@ def score_models(tree, train, validation, metric="f1"):
     except:
        print("Error while attempting model validation.")
 
-# build dataset
+
 def get_data(ncols:int, nrows:int, train_ratio:int, tgt_ratio:int):
     '''
     Takes parameters of the dataset and builds synthetic data. 
@@ -154,3 +181,95 @@ def get_data(ncols:int, nrows:int, train_ratio:int, tgt_ratio:int):
                                                         stratify=target
                                                         )
     return x_train, x_test, y_train, y_test
+
+
+def build_model(params, train_x, train_y, test_x, test_y):
+    """
+    Args:
+        * params: a dictionary of Random Forest parameters
+        * train_x, train_y, test_x, test_y: train and test set predictors (x) and targets (y)
+    Returns:
+        * scores: a dict of model scores on train and test sets
+    """
+    RF = RandomForestClassifier(
+                        n_estimators=params['ntrees'], 
+                        max_depth=params['max_depth'],
+                        min_samples_split=params['min_samples_split'],
+                        min_samples_leaf=params['min_samples_leaf'],
+                        max_features=params['max_features']
+                        )
+    RF.fit(train_x, train_y)
+    train_scores = get_scores(RF, train_x, train_y)
+    test_scores = get_scores(RF, test_x, test_y)
+    return train_scores, test_scores
+
+
+def get_scores(model, features, target):
+    """
+    Scores classifier by comparing predictions from features and the target label.
+    Args:
+        * model: scikit-learn classifier
+        * features: numpy array of predictive features
+        * target: numpy array of corresponding true target labels
+    Returns:
+        * scores: dictionary of model scores on the provided dataset
+    """
+    metric_dict = { 'prec': precision_score,
+                    'acc': accuracy_score,
+                    'rec': recall_score,
+                    'f1': f1_score
+                    }
+    scores = {}
+    predicted_proba = model.predict_proba(features)[:,1]
+    fpr, tpr, _ = roc_curve(target, predicted_proba)
+    scores['auc'] = auc(fpr,tpr)
+    predictions = model.predict(features)
+    for metric in metric_dict.keys():
+        score = metric_dict[metric](target, predictions)
+        if score==numpy.nan:
+            scores[metric]=0
+        else:
+            scores[metric]=numpy.round(100*score, 4)
+    return scores
+
+    
+
+# if __name__=="__main__":
+
+    ## Mock data parameters to use in testing
+    # data_params = {
+    #     'switch': 'true',
+    #     'ncols': 6,
+    #     'nrows': 30,
+    #     'train_ratio': 80,
+    #     'tgt_ratio': 50,
+    #     'ntrees': 5,
+    #     'max_depth': 5,
+    #     'min_samples_split': 2,
+    #     'min_samples_leaf': 1,
+    #     'max_features': 1
+    # }
+    ### Test dataset creation
+    # x_train, x_test,\
+    # y_train, y_test = get_data(ncols=data_params['ncols'], 
+    #                         nrows=data_params['nrows'], 
+    #                         train_ratio=data_params['train_ratio'], 
+    #                         tgt_ratio=data_params['tgt_ratio'])
+    # print("x_train:", x_train)
+    # print("y_train:", y_train)
+
+    ### Test dataset resampling
+    # train_feats, traing_tgt = get_datasets(x_train, y_train, 4)
+    # valid_feats, valid_tgt = get_datasets(x_train, y_train, 4)
+    # print("train resamples:", train_feats, traing_tgt)
+    
+    ### Test model building
+    # RF = RandomForestClassifier(n_estimators=5, max_features=1)
+    # scores = score_bumpers(RF, train_feats, traing_tgt, valid_feats, valid_tgt)
+    # print("Validation scores: ", scores)
+
+    ## Test optimizer
+    # optimum = optimize(x_train, y_train, data_params)
+    # print("Optimal parameters (minimum): ", optimum.x)
+    # print("Objective function at minimum: ", optimum.fun)
+        

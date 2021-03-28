@@ -15,26 +15,31 @@ import copy
 
 data_params = {
     'switch': 'true',
-    'ncols': 100,
-    'nrows': 5000,
+    'ncols': 20,
+    'nrows': 500,
     'train_ratio': 80,
     'tgt_ratio': 50,
-    'ntrees': 100,
+    'ntrees': 10,
     'max_depth': 5,
-    'min_samples_split': 100,
-    'min_samples_leaf': 100,
-    'max_features': 10
+    'min_samples_split': 50,
+    'min_samples_leaf': 50,
+    'max_features': 5
 }
-model_scores = {'prec': 0,
-                'acc': 0,
-                'rec': 0,
-                'f1': 0
-                }
+train_score = {'auc': 0,
+            'prec': 0,
+            'acc': 0,
+            'rec': 0,
+            'f1': 0}
+test_score = {'auc': 0,
+            'prec': 0,
+            'acc': 0,
+            'rec': 0,
+            'f1': 0}
 
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/home", methods=['GET', 'POST'])
 def home():
-    global data_params, model_scores
+    global data_params, train_score, test_score
     # dataset preparation requested
     if request.method=="POST":
         try:
@@ -51,17 +56,28 @@ def home():
                                     tgt_ratio=data_params['tgt_ratio']
                                     )
             if data_params['switch']=='true':
-                print('Starting automatic model building.')
-                #optimum = bo.optimize(train)
-                #print("Optimal parameters (minimum): ", optimum.x)
-                #print("Objective function at minimum: ", optimum.fun)
-                # TODO: update data_params to include optimum RF parameters
-            else:
-                print('Proceeding with manual model building.')
-            # TODO: build RF model with params in data_params and evaluate on test set
-            
-            response = make_response(( {'params': data_params,
-                                        'scores': model_scores}, 
+                print('Searching for optimal parameters.')
+                optimum = bo.optimize(train_x, train_y, data_params)
+                print('Optimal parameters determined: ', optimum.x)
+                print('Objective function (f1-score) at minimum: ', -optimum.fun)
+                data_params.update({ #can't put Int64 in JSON -> use 32bit int
+                    'ntrees': int(optimum.x[0]),
+                    'max_depth': int(optimum.x[1]),
+                    'min_samples_split': int(optimum.x[2]),
+                    'min_samples_leaf': int(optimum.x[3]),
+                    'max_features': int(optimum.x[4])
+                })
+            print('Proceeding with model building.')
+            train_score, test_score = bo.build_model(data_params, 
+                                                    train_x, train_y, 
+                                                    test_x, test_y
+                                                    )
+            print('Model built. Returning model scores.')
+            print('train score: ', train_score)
+            print('test score: ', test_score)
+            response = make_response(( {'data_params': data_params,
+                                        'train_score': train_score,
+                                        'test_score': test_score}, 
                                         200
                                     ))
             return response
