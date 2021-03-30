@@ -8,18 +8,21 @@ function updateParams(el) {
     // takes one of the input ranges and updates divs, badges and tables
     params[el.id] = el.value;
     if (el.id == 'ncols') {
-        // setting number of columns/variables/predictors
+        // setting number of features and estimators
         params['max_features'] = Math.round(Math.sqrt(el.value));
-    }
+        params['ntrees']=Math.round(el.value/2)+1;
+
+        // update dependent inputs
+        let max_feats = document.getElementById('max_features');
+        max_feats.setAttribute('max', params['ncols']);
+        max_feats.setAttribute('value', params['max_features'] );
+        let ntrees = document.getElementById('ntrees');
+        ntrees.setAttribute('max', params['ncols']);
+        ntrees.setAttribute('value', params['ntrees'] );
+    } 
     // update all info
     updateInfo();
     updateTable();
-    // update dependent inputs
-    if (el.id == 'ncols'){
-        max_feats = document.getElementById('max_features');
-        max_feats.setAttribute('max', params['ncols']);
-        max_feats.setAttribute('value', params['max_features'] );
-    } 
 }
 
 function updateInfo(){
@@ -377,6 +380,7 @@ async function submitParams(){
     .then(response => response.json())
     .then(data => {
         hideLoading();
+        params = data["data_params"];
         showModelScores(data["data_params"], 
                         data["train_score"],
                         data["test_score"]);

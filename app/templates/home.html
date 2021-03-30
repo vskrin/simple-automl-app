@@ -131,7 +131,7 @@
                 <input id="nrows" name="nrows" type="range" class="form-range" value="{{data_params['nrows']}}" min="0" max="2000" step="100" oninput="updateParams(this)">
                 <br>
                 <label for="tgt_ratio" class="form-label">Target share  <span id="target_badge" class="badge rounded-pill bg-secondary">{{data_params['tgt_ratio']}}%</span> </label>
-                <input id="tgt_ratio" name="tgt_ratio" type="range" class="form-range" value="{{data_params['tgt_ratio']}}" min="0" max="100" step="1" oninput="updateParams(this)">
+                <input id="tgt_ratio" name="tgt_ratio" type="range" class="form-range" value="{{data_params['tgt_ratio']}}" min="30" max="70" step="1" oninput="updateParams(this)">
                 <br>
                 <label for="train_ratio" class="form-label">Train-test split  <span id="split_badge" class="badge rounded-pill bg-secondary">{{data_params['train_ratio']}}-{{100-data_params['train_ratio']}}</span> </label>
                 <input id="train_ratio" name="train_ratio" type="range" class="form-range" value="{{data_params['train_ratio']}}" min="0" max="100" step="5" oninput="updateParams(this)">
@@ -174,7 +174,7 @@
             </div>
             <form method="POST" action="" id="model_form">
                 <label for="ntrees" class="form-label">Number of estimators <span id="ntrees_badge" class="badge rounded-pill bg-secondary">{{data_params['ntrees']}}</span> </label>
-                <input id="ntrees" name="ntrees" type="range" class="form-range" value="{{data_params['ntrees']}}" min="0" max="{{data_params['ncols']}}" step="5" oninput="updateParams(this)" disabled>
+                <input id="ntrees" name="ntrees" type="range" class="form-range" value="{{data_params['ntrees']}}" min="0" max="{{data_params['ncols']}}" step="1" oninput="updateParams(this)" disabled>
                 <br>
                 <label for="max_depth" class="form-label">Max tree depth <span id="depth_badge" class="badge rounded-pill bg-secondary">{{data_params['max_depth']}}</span> </label>
                 <input id="max_depth" name="max_depth" type="range" class="form-range" value="{{data_params['max_depth']}}" min="1" max="20" step="1" oninput="updateParams(this)" disabled>

@@ -41,12 +41,7 @@ def optimize(features, target, data_params):
     global param_grid, train_x, train_y, valid_x, valid_y
     train_x, train_y = get_datasets(features, target, n_resamples)
     valid_x, valid_y = get_datasets(features, target, n_resamples)
-    param_grid = [Integer(2,data_params['ncols'], name="n_estimators"),
-                Integer(2,10, name="max_depth"),
-                Integer(10, data_params['nrows']//2, name="min_samples_split"),
-                Integer(5, data_params['nrows']//3, name="min_samples_leaf"),
-                Integer(1, data_params['ncols']//3, name="max_features")
-                ]
+    param_grid = set_param_grid(data_params)
     time = perf_counter()
     result = gp_minimize(   
                     objective, 
@@ -61,6 +56,33 @@ def optimize(features, target, data_params):
     print(f"Parameter search took {perf_counter()-time:.3f}s to complete.")
     progress_data = plot_opti_progress(result.func_vals)
     return result, progress_data
+
+def set_param_grid(params):
+    """
+    Prepares parameter search grid based on the dataset parameters provided by the user.
+    """
+    # set preferred upper limits
+    max_trees=params['ncols']
+    max_node_size=params['nrows']//2
+    max_leaf_size=params['nrows']//3
+    max_feats=params['ncols']//3
+    # make sure upper lims > lower lims
+    if max_trees<=2:
+        max_trees=3
+    if max_node_size<=10:
+        max_node_size=11
+    if max_leaf_size<=5:
+        max_leaf_size=6
+    if max_feats<=1:
+        max_feats=2
+    # prepare and return param grid
+    param_grid = [Integer(2,max_trees, name="n_estimators"),
+                Integer(2,10, name="max_depth"),
+                Integer(10, max_node_size, name="min_samples_split"),
+                Integer(5, max_leaf_size, name="min_samples_leaf"),
+                Integer(1, max_feats , name="max_features")
+                ]
+    return param_grid
 
 # objective function - minimized for the best model
 @use_named_args(param_grid)
