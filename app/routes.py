@@ -6,10 +6,8 @@ from flask import current_app as app
 from flask import render_template, request, url_for, flash, redirect, make_response, jsonify
 from . import bayesian_optimizer as bo
 import numpy as np
-import pandas as pd
 import os
 import json
-from datetime import datetime
 import time
 import copy
 
@@ -23,7 +21,7 @@ data_params = {
     'max_depth': 5,
     'min_samples_split': 50,
     'min_samples_leaf': 50,
-    'max_features': 5
+    'max_features': 2
 }
 train_score = {'auc': 0,
             'prec': 0,
@@ -72,12 +70,14 @@ def home():
                                                     train_x, train_y, 
                                                     test_x, test_y
                                                     )
+            data_fig = bo.plot_pca(train_x, train_y)
             print('Model built. Returning model scores.')
             print('train score: ', train_score)
             print('test score: ', test_score)
             response = make_response(( {'data_params': data_params,
                                         'train_score': train_score,
-                                        'test_score': test_score}, 
+                                        'test_score': test_score,
+                                        'pca_data': data_fig}, 
                                         200
                                     ))
             return response

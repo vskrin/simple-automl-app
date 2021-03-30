@@ -174,8 +174,147 @@ function updateModelBadges(){
     }
 }
 
+function showSpinner(){
+    let spinner = document.getElementById("spinner");
+    spinner.classList.add('spinner-grow');
+    let info = document.getElementById("model_info");
+    while (info.firstChild) {
+        info.removeChild(info.firstChild);
+    }
+    let loading_txt=document.createTextNode("Building model. This may take up to 30sec depending on the parameters.");
+    info.appendChild(loading_txt);
+}
+
+function hideSpinner(){
+    let spinner = document.getElementById("spinner");
+    spinner.classList.remove('spinner-grow')
+    let info = document.getElementById("model_info");
+    info.removeChild(info.firstChild)
+}
+
+function showModelScores(params, train_score, test_score){
+    let div = document.getElementById("model_info");
+    let txt;
+    // model parameters info
+    if (params['switch']=='false'){
+        txt = document.createTextNode("Chosen model parameters:");
+    } else {
+        txt = document.createTextNode("Optimal model parameters:");
+    }
+    div.appendChild(txt);
+    div.appendChild(document.createElement("br"));
+    let ul = document.createElement("ul");
+    let li;
+    for (key of ['ntrees', 'max_depth', 'min_samples_split',
+                'min_samples_leaf', 'max_features']){
+        txt = document.createTextNode(`${key}=${params[key]}`);
+        li = document.createElement("li");
+        li.appendChild(txt);
+        ul.appendChild(li);
+    }
+    div.appendChild(ul);
+    div.appendChild(document.createElement("br"));
+    // model scores on train
+    txt = document.createTextNode("Model scores on the train set:");
+    div.appendChild(txt);
+    div.appendChild(document.createElement("br"));
+    let tbl = document.createElement("table");
+    tbl.classList.add("table"); 
+    tbl.classList.add("table-hover");
+    let thead = document.createElement("thead");
+    let tbody = document.createElement("tbody");
+    let td, th, tr;
+    for (entry of ["Metric", "Value"]){
+        th = document.createElement("th");
+        th.appendChild(document.createTextNode(entry));
+        thead.appendChild(th);
+    }
+    tbl.appendChild(thead);
+    for (key in train_score){
+        tr = document.createElement("tr");
+        td = document.createElement("td");
+        td.appendChild( document.createTextNode(`${key}`) );
+        tr.appendChild(td);
+        td = document.createElement("td");
+        td.appendChild( document.createTextNode(`${train_score[key].toFixed(2)}`) );
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+    }
+    tbl.appendChild(tbody);
+    div.appendChild(tbl);
+    div.appendChild(document.createElement("br"));
+    // model scores on test
+    txt = document.createTextNode("Model scores on the test set:");
+    div.appendChild(txt);
+    div.appendChild(document.createElement("br"));
+    tbl = document.createElement("table");
+    tbl.classList.add("table"); 
+    tbl.classList.add("table-hover");
+    thead = document.createElement("thead");
+    tbody = document.createElement("tbody");
+    for (entry of ["Metric", "Value"]){
+        th = document.createElement("th");
+        th.appendChild(document.createTextNode(entry));
+        thead.appendChild(th);
+    }
+    tbl.appendChild(thead);
+    for (key in test_score){
+        tr = document.createElement("tr");
+        td = document.createElement("td");
+        td.appendChild( document.createTextNode(`${key}`) );
+        tr.appendChild(td);
+        td = document.createElement("td");
+        td.appendChild( document.createTextNode(`${test_score[key].toFixed(2)}`) );
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+    }
+    tbl.appendChild(tbody);
+    div.appendChild(tbl);
+}
+
+function showFigures(fig_data){
+    let div = document.getElementById("data_fig");
+    let tgt = fig_data.filter(data => data[2]==1);
+    let non_tgt = fig_data.filter(data => data[2]==0);
+    console.log(tgt);
+    let trace1 = {
+        x: tgt.map(item => item[0]),
+        y: tgt.map(item => item[1]),
+        mode: 'markers',
+        type: 'scatter',
+        name: 'Target',
+        marker: {   size: 10,
+                    opacity: .75
+                }
+      };
+    let trace2 = {
+        x: non_tgt.map(item => item[0]),
+        y: non_tgt.map(item => item[1]),
+        mode: 'markers',
+        type: 'scatter',
+        name: 'Non-target',
+        marker: {   size: 10,
+                    opacity: .75
+                }
+      };
+    let traces = [trace1, trace2];
+    let layout = {
+        title: {
+            text: 'Train set in the space of the first two PCA components'
+        },
+        xaxis: {
+            title: { text: '1st component'}
+        },
+        yaxis: {
+            title: { text: '2nd component'}
+        }
+    }
+    Plotly.newPlot(div, traces, layout);
+}
+
 async function submitParams(){
 
+    showSpinner();
     fetch('/', {
         method: 'POST',
         headers: {
@@ -185,11 +324,19 @@ async function submitParams(){
     })
     .then(response => response.json())
     .then(data => {
-        model = JSON.stringify(data);
-        console.log('model: ', model);
+        hideSpinner();
+        showModelScores(data["data_params"], 
+                        data["train_score"],
+                        data["test_score"]);
+        showFigures(data["pca_data"]);
     })
     .catch((error) => {
         console.error('Error:', error);
+        hideSpinner();
+        let info = document.getElementById("model_info");
+        let error_txt=document.createTextNode("An error occurred during model building. Please try again.");
+        info.appendChild(error_txt);
     });
+    
 
 }

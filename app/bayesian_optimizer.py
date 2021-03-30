@@ -5,9 +5,11 @@ from sklearn.metrics import precision_score, accuracy_score, recall_score, f1_sc
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.utils import resample
+from sklearn.decomposition import PCA
 from time import perf_counter
 import numpy
-import pandas
+import plotly.express as px
+import plotly
 
 # global variables
 # param_grid is set up in optimize(). instantiated here to give parameter names for objective().
@@ -232,11 +234,19 @@ def get_scores(model, features, target):
             scores[metric]=numpy.round(100*score, 4)
     return scores
 
-    
+def plot_pca(data, labels):
+    """
+    Takes numpy array, performs PCA analysis, and plots two principal components.
+    """
+    pca = PCA(n_components=2)
+    pca.fit(data)
+    train_pca = pca.transform(data)
+    plot_data = [[pca[0], pca[1], int(label)] for pca, label in zip(train_pca, labels)]
+    return plot_data
 
-# if __name__=="__main__":
+#if __name__=="__main__":
 
-    ## Mock data parameters to use in testing
+    # ## Mock data parameters to use in testing
     # data_params = {
     #     'switch': 'true',
     #     'ncols': 6,
@@ -249,7 +259,7 @@ def get_scores(model, features, target):
     #     'min_samples_leaf': 1,
     #     'max_features': 1
     # }
-    ### Test dataset creation
+    # ## Test dataset creation
     # x_train, x_test,\
     # y_train, y_test = get_data(ncols=data_params['ncols'], 
     #                         nrows=data_params['nrows'], 
@@ -273,3 +283,7 @@ def get_scores(model, features, target):
     # print("Optimal parameters (minimum): ", optimum.x)
     # print("Objective function at minimum: ", optimum.fun)
         
+    ## Test PCA plotting
+    # fig = plot_pca(x_train, y_train)
+    # print(fig)
+    

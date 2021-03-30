@@ -43,6 +43,69 @@
         </div>
         </div>
     </div>
+    <!-- Modeling info modal -->
+    <div class="modal fade" id="modelingInfoModal" tabindex="-1">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modeling info</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    <b>Random forests.</b>
+                    This tool builds Random Forests. For more information about this class
+                    of machine learning algorithms see 
+                    <a target="_blank" href=https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html>
+                    scikit-learn documentation</a>.
+                </p>
+                <p>
+                    <b>Automatic optimization.</b>
+                    Use the switch to choose between manual modeling or automatic parameter optimization.
+                    Custom choices result in quick model building due to limited dataset size and because only one model is built.
+                    Automatic model building consists of two steps - the search for the optimal parameters and model building.
+                </p>
+                <p>
+                    <b>Parameter optimization.</b>
+                    The search is performed using <a target="_blank" href="https://scikit-optimize.github.io/stable/">
+                    scikit-optimize</a> library. The library enables an easy implementation of Bayesian optimization
+                    via Gaussian processes. 
+                    <br>
+                    The quality of the results should be similar to a random parameter search, 
+                    and equal-to-slightly-worse than an exhaustive search. Two key benefits are significantly higher 
+                    speed with which the (approximately) optimal parameters are found, and small number of search attempts
+                    that are made. (The latter results in higher model reliability. You may think of it as fewer p-value
+                    adjustments needed.)
+                    <br>
+                    The search is performed using bootstrap resampling-based methodology. The original training set is used to 
+                    generate 20 training resamples and 20 validation resamples. The original training set thus acts as an empirical
+                    distribution from which we sample mock data. 20 models are built and validated, each on its own train and validation
+                    sets. The models' f1-scores are evaluated on the validation sets. The median model score is taken to be representative
+                    of the score for the given choice of parameters. 15 evaluation steps are made, of which first 5 are randomly chosen,
+                    and the further 10 are based on Gaussian process expected improvement. The optimal parameters are returned.
+                    <br>
+                    After the optimal parameters have been determined, a model with given parameters is trained on the original train set.
+                    It is then evaluated both on the train set and the holdout set. These model-building and model-scoring steps are 
+                    the same for automatically detemined and manually chosen parameters.
+                </p>
+                <p>
+                    <b>Parameters.</b>
+                    A few key parameters may be manually modified: number of estimators (trees), maximum depth per tree, minimum
+                    allowed node size, minimum allowed leaf node size, and maximum number of (randomly chosen) features that each
+                    estimator has access to.
+                </p>
+                <p>
+                    <b>Model scores.</b>
+                    Scores are calculated on the train set and the test set. Test set is a holdout set and is different from the 
+                    validation set used in automatic optimization.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+        </div>
+    </div>
     <hr>
     <div class="row">
         <div class="column col-lg-4">
@@ -91,7 +154,11 @@
     <hr>
     <div class="row">
         <div class="column col-lg-4">
-            <H4>Build Random Forest model</H4>
+            <H4>Build Random Forest model
+                <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#modelingInfoModal">
+                    <i data-feather="info"></i>
+                </button>
+            </H4>
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" id="switch" onchange="switchModeling()" checked="{{data_params['switch']}}">
                 <label class="form-check-label" for="switch">Automatic optimization</label>
@@ -110,26 +177,28 @@
                 <input id="min_samples_leaf" name="min_samples_leaf" type="range" class="form-range" value="{{data_params['min_samples_leaf']}}" min="0" max="{{data_params['nrows']//2}}" step="5" oninput="updateParams(this)" disabled>
                 <br>
                 <label for="max_features" class="form-label">Max features used per tree <span id="maxfeats_badge" class="badge rounded-pill bg-secondary">{{data_params['ncols']//10}}</span> </label>
-                <input id="max_features" name="max_features" type="range" class="form-range" value={{data_params['ncols']}} min="1" max={{data_params['ncols']}} step="1" oninput="updateParams(this)" disabled>
+                <input id="max_features" name="max_features" type="range" class="form-range" value={{data_params['ncols']//10}} min="1" max={{data_params['ncols']}} step="1" oninput="updateParams(this)" disabled>
                 <br>
             </form>
-    
             <button class="btn btn-primary" onclick="submitParams()">Build</button>
         </div>
         <div class="column col-lg-8">
-            <H4>Model details</H4>
+            <H4>Model details &nbsp; <div id="spinner" class="text-primary"></div></H4>
+            <div id="model_info"></div>
         </div>
     </div>
-    <hr>
+    <hr/>
     <div class="row">
-        <div class="column col-lg-4">
-            <H4>Evaluate model</H4>
-        </div>
+        <H4>Further info</H4>
+        <div class="column col-lg-2"></div>
         <div class="column col-lg-8">
-            <H4>Model scores</H4>
+            <div id="data_fig"></div>
         </div>
+        <div class="column col-lg-2"></div>
     </div>
-    <hr>
+    <hr/>
+    <br/>
+    <br/>
 </div>
 
 <!-- custom js -->
