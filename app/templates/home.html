@@ -13,23 +13,32 @@
             <div class="modal-body">
                 <p>
                     <b>Dataset generator.</b>
-                    This is a simple generator of synthetic datasets.
+                    This is a generator of synthetic datasets.
                     It is kept simple because the only purpose of the dataset is to 
                     showcase some machine learning capabilities.
                 </p>
                 <p>
                     <b>Controls.</b>
-                    You may choose the number of predictive features and dataset size (number of rows).
+                    You may choose the number of predictive features and the dataset size (number of rows).
                     Additionally, you may introduce dataset imbalance via target ratio.
                     Finally, you may split data into train and test sets in various ratios.
                 </p>
                 <p>
                     <b>Datasets.</b>
-                    Features are generated according to a multivariate normal distribution.
-                    Correlation matrix is randomly generated with values distributed uniformly on (-1,1).
-                    Errors are normal and uncorrelated.
-                    To build binary classification targets we sum up values of all features and assign 
-                    target value 1 if the sum is non-negative and 0 otherwise.
+                    Features are generated according to a multivariate normal distribution with white noise.
+                    <br>
+                    Feature means are sampled from the uniform distribution on interval (-1,1).
+                    Covariance is obtained as a square of a random matrix with entries distributed uniformly on
+                    interval (-1/2, 1/2).
+                    Noise is generated similarly, with means located at 0, and covariance generated randomly 
+                    (equivalent process as for the predictors).
+                    <br>
+                    To build binary classification targets we sum up values of all the features and assign 
+                    target value 1 if the sum is greater than 1/2 and 0 otherwise.
+                    (I.e. a row is labelled as a target if the sum of all predictors is greater than 1/2.)
+                    Since datasets are multidimensional, to provide some intuition about the data, the plot
+                    in the bottom of the app shows targets and non-targets distributed in the space of
+                    two main PCA components.
                 </p>
                 <p>
                     <b>Limitations.</b>
@@ -116,7 +125,7 @@
             </H4>
             <form method="POST" action="" id="data_form">
                 <label for="ncols" class="form-label">Number of features <span id="features_badge" class="badge rounded-pill bg-secondary">{{data_params['ncols']}}</span> </label>
-                <input id="ncols" name="ncols" type="range" class="form-range" value="{{data_params['ncols']}}" min="1" max="200" step="1" oninput="updateParams(this)">
+                <input id="ncols" name="ncols" type="range" class="form-range" value="{{data_params['ncols']}}" min="1" max="50" step="1" oninput="updateParams(this)">
                 <br>
                 <label for="nrows" class="form-label">Dataset size  <span id="rows_badge" class="badge rounded-pill bg-secondary">{{data_params['nrows']}}</span> </label>
                 <input id="nrows" name="nrows" type="range" class="form-range" value="{{data_params['nrows']}}" min="0" max="2000" step="100" oninput="updateParams(this)">
@@ -190,11 +199,16 @@
     <hr/>
     <div class="row">
         <H4>Further info</H4>
-        <div class="column col-lg-2"></div>
-        <div class="column col-lg-8">
-            <div id="data_fig"></div>
+        <div class="column col-lg-1"></div>
+        <div class="column col-lg-10">
+            <div class="row">
+                <div id="data_fig"></div>
+            </div>
+            <div class="row">
+                <div id="progress_fig"></div>
+            </div>
         </div>
-        <div class="column col-lg-2"></div>
+        <div class="column col-lg-1"></div>
     </div>
     <hr/>
     <br/>

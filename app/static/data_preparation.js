@@ -174,22 +174,50 @@ function updateModelBadges(){
     }
 }
 
-function showSpinner(){
+function showLoading(){
+    // show spinner
     let spinner = document.getElementById("spinner");
     spinner.classList.add('spinner-grow');
+    // update infobox
     let info = document.getElementById("model_info");
     while (info.firstChild) {
         info.removeChild(info.firstChild);
     }
     let loading_txt=document.createTextNode("Building model. This may take up to 30sec depending on the parameters.");
     info.appendChild(loading_txt);
+    // update figures
+    let fig = document.getElementById("data_fig");
+    while (fig.firstChild) {
+        fig.removeChild(fig.firstChild);
+    }
+    loading_txt=document.createTextNode("New data will be shown when modeling is complete.");
+    fig.appendChild(loading_txt);
+    fig = document.getElementById("progress_fig");
+    while (fig.firstChild) {
+            fig.removeChild(fig.firstChild);
+    }
+    if (params["switch"]=="true"){
+        loading_txt=document.createTextNode("Optimization progress will be shown below.");
+        fig.appendChild(loading_txt);
+    }
 }
 
-function hideSpinner(){
+function hideLoading(){
+    // hide spinner
     let spinner = document.getElementById("spinner");
     spinner.classList.remove('spinner-grow')
+    // clear infobox
     let info = document.getElementById("model_info");
     info.removeChild(info.firstChild)
+    // clear figures
+    let fig = document.getElementById("data_fig");
+    while (fig.firstChild) {
+        fig.removeChild(fig.firstChild);
+    }
+    fig = document.getElementById("progress_fig");
+    while (fig.firstChild) {
+        fig.removeChild(fig.firstChild);
+    }
 }
 
 function showModelScores(params, train_score, test_score){
@@ -272,11 +300,10 @@ function showModelScores(params, train_score, test_score){
     div.appendChild(tbl);
 }
 
-function showFigures(fig_data){
+function showDataFigure(fig_data){
     let div = document.getElementById("data_fig");
     let tgt = fig_data.filter(data => data[2]==1);
     let non_tgt = fig_data.filter(data => data[2]==0);
-    console.log(tgt);
     let trace1 = {
         x: tgt.map(item => item[0]),
         y: tgt.map(item => item[1]),
@@ -312,9 +339,34 @@ function showFigures(fig_data){
     Plotly.newPlot(div, traces, layout);
 }
 
+function showProgressFigure(progress){
+    let div = document.getElementById("progress_fig");
+    let trace = {
+        x: progress.map(item => item[0]),
+        y: progress.map(item => item[1]),
+        mode: 'lines+markers',
+        name: 'Optimization progress',
+        marker: {   size: 10,
+                    opacity: .75
+                }
+      };
+    let layout = {
+        title: {
+            text: 'Bayesian optimization progress'
+        },
+        xaxis: {
+            title: { text: 'Optimization step'}
+        },
+        yaxis: {
+            title: { text: 'Max(f1-score) until given step'}
+        }
+    }
+    Plotly.newPlot(div, [trace], layout);
+}
+
 async function submitParams(){
 
-    showSpinner();
+    showLoading();
     fetch('/', {
         method: 'POST',
         headers: {
@@ -324,15 +376,18 @@ async function submitParams(){
     })
     .then(response => response.json())
     .then(data => {
-        hideSpinner();
+        hideLoading();
         showModelScores(data["data_params"], 
                         data["train_score"],
                         data["test_score"]);
-        showFigures(data["pca_data"]);
+        showDataFigure(data["pca_data"]);
+        if (data["data_params"]["switch"]=="true"){
+            showProgressFigure(data["progress_data"])
+        }
     })
     .catch((error) => {
         console.error('Error:', error);
-        hideSpinner();
+        hideLoading();
         let info = document.getElementById("model_info");
         let error_txt=document.createTextNode("An error occurred during model building. Please try again.");
         info.appendChild(error_txt);

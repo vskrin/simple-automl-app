@@ -28,6 +28,16 @@ n_steps = 15
 
 # Bayesian optimization via Gaussian process
 def optimize(features, target, data_params):
+    """
+    Main access point to scikit-optimize Bayesian optimization functionality.
+    Args:
+        * features: numpy array of predictive features
+        * target: numpy array of class labels
+        * data_params: dictionary of dataset parameters
+    Returns:
+        * result: scikit-optimize OptimizeResult object
+        * progress_data: 2d array of best (objective function) results until given step
+    """
     global param_grid, train_x, train_y, valid_x, valid_y
     train_x, train_y = get_datasets(features, target, n_resamples)
     valid_x, valid_y = get_datasets(features, target, n_resamples)
@@ -49,7 +59,8 @@ def optimize(features, target, data_params):
                     verbose=False
                     )
     print(f"Parameter search took {perf_counter()-time:.3f}s to complete.")
-    return result
+    progress_data = plot_opti_progress(result.func_vals)
+    return result, progress_data
 
 # objective function - minimized for the best model
 @use_named_args(param_grid)
@@ -244,27 +255,41 @@ def plot_pca(data, labels):
     plot_data = [[pca[0], pca[1], int(label)] for pca, label in zip(train_pca, labels)]
     return plot_data
 
-#if __name__=="__main__":
+def plot_opti_progress(objective_values):
+    """
+    Takes list of objective function values. Returns list of best scores until given step.
+    """
+    optimum = 0
+    result = []
+    for n, el in enumerate(objective_values):
+        if -el>optimum:
+            result.append([n+1,-el])
+            optimum = -el
+        else:
+            result.append([n+1,optimum])
+    return result
 
-    # ## Mock data parameters to use in testing
-    # data_params = {
-    #     'switch': 'true',
-    #     'ncols': 6,
-    #     'nrows': 30,
-    #     'train_ratio': 80,
-    #     'tgt_ratio': 50,
-    #     'ntrees': 5,
-    #     'max_depth': 5,
-    #     'min_samples_split': 2,
-    #     'min_samples_leaf': 1,
-    #     'max_features': 1
-    # }
-    # ## Test dataset creation
-    # x_train, x_test,\
-    # y_train, y_test = get_data(ncols=data_params['ncols'], 
-    #                         nrows=data_params['nrows'], 
-    #                         train_ratio=data_params['train_ratio'], 
-    #                         tgt_ratio=data_params['tgt_ratio'])
+if __name__=="__main__":
+
+    ## Mock data parameters to use in testing
+    data_params = {
+        'switch': 'true',
+        'ncols': 6,
+        'nrows': 30,
+        'train_ratio': 80,
+        'tgt_ratio': 50,
+        'ntrees': 5,
+        'max_depth': 5,
+        'min_samples_split': 2,
+        'min_samples_leaf': 1,
+        'max_features': 1
+    }
+    ## Test dataset creation
+    x_train, x_test,\
+    y_train, y_test = get_data(ncols=data_params['ncols'], 
+                            nrows=data_params['nrows'], 
+                            train_ratio=data_params['train_ratio'], 
+                            tgt_ratio=data_params['tgt_ratio'])
     # print("x_train:", x_train)
     # print("y_train:", y_train)
 
@@ -279,11 +304,14 @@ def plot_pca(data, labels):
     # print("Validation scores: ", scores)
 
     ## Test optimizer
-    # optimum = optimize(x_train, y_train, data_params)
-    # print("Optimal parameters (minimum): ", optimum.x)
-    # print("Objective function at minimum: ", optimum.fun)
-        
+    optimum = optimize(x_train, y_train, data_params)
+    print("Optimal parameters (minimum): ", optimum.x)
+    print("Objective function at minimum: ", optimum.fun)
+    print("Function values for each iter:", optimum.func_vals)
     ## Test PCA plotting
     # fig = plot_pca(x_train, y_train)
     # print(fig)
+    print("best score until given step: ", plot_opti_progress(optimum.func_vals))
+
+
     

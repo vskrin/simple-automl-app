@@ -55,7 +55,7 @@ def home():
                                     )
             if data_params['switch']=='true':
                 print('Searching for optimal parameters.')
-                optimum = bo.optimize(train_x, train_y, data_params)
+                optimum, progress_data = bo.optimize(train_x, train_y, data_params)
                 print('Optimal parameters determined: ', optimum.x)
                 print('Objective function (f1-score) at minimum: ', -optimum.fun)
                 data_params.update({ #can't put Int64 in JSON -> use 32bit int
@@ -65,19 +65,22 @@ def home():
                     'min_samples_leaf': int(optimum.x[3]),
                     'max_features': int(optimum.x[4])
                 })
+            else:
+                progress_data = "none"
             print('Proceeding with model building.')
             train_score, test_score = bo.build_model(data_params, 
                                                     train_x, train_y, 
                                                     test_x, test_y
                                                     )
-            data_fig = bo.plot_pca(train_x, train_y)
+            pca_data = bo.plot_pca(train_x, train_y)
             print('Model built. Returning model scores.')
             print('train score: ', train_score)
             print('test score: ', test_score)
             response = make_response(( {'data_params': data_params,
                                         'train_score': train_score,
                                         'test_score': test_score,
-                                        'pca_data': data_fig}, 
+                                        'pca_data': pca_data,
+                                        'progress_data': progress_data}, 
                                         200
                                     ))
             return response
