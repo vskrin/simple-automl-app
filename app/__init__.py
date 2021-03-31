@@ -1,5 +1,4 @@
 from flask import Flask
-import pandas as pd
 
 def create_app():
     """ 
