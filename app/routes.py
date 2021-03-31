@@ -1,15 +1,12 @@
 """
-Flask app routes for data preparation.
+Flask app routes.
 """
-
 from flask import current_app as app
-from flask import render_template, request, url_for, flash, redirect, make_response, jsonify
+from flask import render_template, request, make_response
 from . import bayesian_optimizer as bo
 import numpy as np
 import os
 import json
-import time
-import copy
 
 data_params = {
     'switch': 'true',

@@ -6,8 +6,6 @@ class Config:
     STATIC_FOLDER = 'static'
     TEMPLATES_FOLDER = 'templates'
 
-    # SEND_FILE_MAX_AGE_DEFAULT = 1
-
 class ProdConfig(Config):
     """ Production environment """
     FLASK_ENV = 'production'
