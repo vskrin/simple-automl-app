@@ -7,18 +7,19 @@ from . import bayesian_optimizer as bo
 import numpy as np
 import os
 import json
+from time import perf_counter
 
 data_params = {
     'switch': 'true',
-    'ncols': 20,
-    'nrows': 500,
+    'ncols': 10,
+    'nrows': 250,
     'train_ratio': 80,
     'tgt_ratio': 50,
-    'ntrees': 10,
+    'ntrees': 5,
     'max_depth': 5,
     'min_samples_split': 50,
     'min_samples_leaf': 50,
-    'max_features': 2
+    'max_features': 3
 }
 train_score = {'auc': 0,
             'prec': 0,
@@ -37,6 +38,7 @@ def home():
     global data_params, train_score, test_score
     # dataset preparation requested
     if request.method=="POST":
+        time = perf_counter()
         for key in data_params.keys():
             try:
                 data_params[key]=int(request.json[key])
@@ -79,6 +81,7 @@ def home():
                                     'progress_data': progress_data}, 
                                     200
                                 ))
+        print(f"It took {perf_counter()-time:.2f} sec to process the request.")
         return response
 
 

@@ -23,7 +23,7 @@ model = RandomForestClassifier()
 # lists of resampled train and test datasets
 train_x, train_y = [], []
 valid_x, valid_y = [], []
-n_resamples = 20
+n_resamples = 5
 n_steps = 15
 
 # Bayesian optimization via Gaussian process

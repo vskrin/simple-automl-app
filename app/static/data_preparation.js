@@ -186,7 +186,7 @@ function showLoading(){
     while (info.firstChild) {
         info.removeChild(info.firstChild);
     }
-    let loading_txt=document.createTextNode("Building model. This may take up to 45sec depending on the number of features and dataset size.");
+    let loading_txt=document.createTextNode("Building model. This may take up to 30sec depending on the parameters.");
     info.appendChild(loading_txt);
     // update figures
     let fig = document.getElementById("data_fig");
@@ -394,7 +394,7 @@ async function submitParams(){
         hideLoading();
         let info = document.getElementById("model_info");
         let error_txt=document.createTextNode("An error occurred during model building. Please try again.");
-        info.appendChild(error_txt);
+        info.appendChild(error_txt)
     });
     
 
