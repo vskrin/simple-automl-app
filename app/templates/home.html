@@ -118,25 +118,27 @@
     <hr>
     <div class="row">
         <div class="column col-lg-4">
-            <H4>Prepare data 
-                <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#dataInfoModal">
-                    <i data-feather="info"></i>
-                </button>
-            </H4>
-            <form method="POST" action="" id="data_form">
-                <label for="ncols" class="form-label">Number of features <span id="features_badge" class="badge rounded-pill bg-secondary">{{data_params['ncols']}}</span> </label>
-                <input id="ncols" name="ncols" type="range" class="form-range" value="{{data_params['ncols']}}" min="1" max="50" step="1" oninput="updateParams(this)">
-                <br>
-                <label for="nrows" class="form-label">Dataset size  <span id="rows_badge" class="badge rounded-pill bg-secondary">{{data_params['nrows']}}</span> </label>
-                <input id="nrows" name="nrows" type="range" class="form-range" value="{{data_params['nrows']}}" min="0" max="2000" step="100" oninput="updateParams(this)">
-                <br>
-                <label for="tgt_ratio" class="form-label">Target share  <span id="target_badge" class="badge rounded-pill bg-secondary">{{data_params['tgt_ratio']}}%</span> </label>
-                <input id="tgt_ratio" name="tgt_ratio" type="range" class="form-range" value="{{data_params['tgt_ratio']}}" min="30" max="70" step="1" oninput="updateParams(this)">
-                <br>
-                <label for="train_ratio" class="form-label">Train-test split  <span id="split_badge" class="badge rounded-pill bg-secondary">{{data_params['train_ratio']}}-{{100-data_params['train_ratio']}}</span> </label>
-                <input id="train_ratio" name="train_ratio" type="range" class="form-range" value="{{data_params['train_ratio']}}" min="0" max="100" step="5" oninput="updateParams(this)">
-                <br>
-            </form>
+            <div class="controlsbox">
+                <H4>Prepare data 
+                    <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#dataInfoModal">
+                        <i data-feather="info"></i>
+                    </button>
+                </H4>
+                <form method="POST" action="" id="data_form">
+                    <label for="ncols" class="form-label">Number of features <span id="features_badge" class="badge rounded-pill bg-secondary">{{data_params['ncols']}}</span> </label>
+                    <input id="ncols" name="ncols" type="range" class="form-range" value="{{data_params['ncols']}}" min="1" max="50" step="1" oninput="updateParams(this)">
+                    <br>
+                    <label for="nrows" class="form-label">Dataset size  <span id="rows_badge" class="badge rounded-pill bg-secondary">{{data_params['nrows']}}</span> </label>
+                    <input id="nrows" name="nrows" type="range" class="form-range" value="{{data_params['nrows']}}" min="0" max="2000" step="100" oninput="updateParams(this)">
+                    <br>
+                    <label for="tgt_ratio" class="form-label">Target share  <span id="target_badge" class="badge rounded-pill bg-secondary">{{data_params['tgt_ratio']}}%</span> </label>
+                    <input id="tgt_ratio" name="tgt_ratio" type="range" class="form-range" value="{{data_params['tgt_ratio']}}" min="30" max="70" step="1" oninput="updateParams(this)">
+                    <br>
+                    <label for="train_ratio" class="form-label">Train-test split  <span id="split_badge" class="badge rounded-pill bg-secondary">{{data_params['train_ratio']}}-{{100-data_params['train_ratio']}}</span> </label>
+                    <input id="train_ratio" name="train_ratio" type="range" class="form-range" value="{{data_params['train_ratio']}}" min="0" max="100" step="5" oninput="updateParams(this)">
+                    <br>
+                </form>
+            </div>
         </div>
         <div class="column col-lg-8">
             <H4>Selected dataset</H4>
@@ -163,33 +165,35 @@
     <hr>
     <div class="row">
         <div class="column col-lg-4">
-            <H4>Build Random Forest model
-                <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#modelingInfoModal">
-                    <i data-feather="info"></i>
-                </button>
-            </H4>
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="switch" onchange="switchModeling()" checked="{{data_params['switch']}}">
-                <label class="form-check-label" for="switch">Automatic optimization</label>
+            <div class="controlsbox">
+                <H4>Build Random Forest model
+                    <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#modelingInfoModal">
+                        <i data-feather="info"></i>
+                    </button>
+                </H4>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="switch" onchange="switchModeling()" checked="{{data_params['switch']}}">
+                    <label class="form-check-label" for="switch">Automatic optimization</label>
+                </div>
+                <form method="POST" action="" id="model_form">
+                    <label for="ntrees" class="form-label">Number of estimators <span id="ntrees_badge" class="badge rounded-pill bg-secondary">{{data_params['ntrees']}}</span> </label>
+                    <input id="ntrees" name="ntrees" type="range" class="form-range" value="{{data_params['ntrees']}}" min="0" max="{{data_params['ncols']}}" step="1" oninput="updateParams(this)" disabled>
+                    <br>
+                    <label for="max_depth" class="form-label">Max tree depth <span id="depth_badge" class="badge rounded-pill bg-secondary">{{data_params['max_depth']}}</span> </label>
+                    <input id="max_depth" name="max_depth" type="range" class="form-range" value="{{data_params['max_depth']}}" min="1" max="20" step="1" oninput="updateParams(this)" disabled>
+                    <br>
+                    <label for="min_samples_split" class="form-label">Min node size <span id="nodesize_badge" class="badge rounded-pill bg-secondary">{{data_params['min_samples_split']}}</span> </label>
+                    <input id="min_samples_split" name="min_samples_split" type="range" class="form-range" value="{{data_params['min_samples_split']}}" min="0" max="{{data_params['nrows']//2}}" step="5" oninput="updateParams(this)" disabled>
+                    <br>
+                    <label for="min_samples_leaf" class="form-label">Min leaf size <span id="leafsize_badge" class="badge rounded-pill bg-secondary">{{data_params['min_samples_leaf']}}</span> </label>
+                    <input id="min_samples_leaf" name="min_samples_leaf" type="range" class="form-range" value="{{data_params['min_samples_leaf']}}" min="0" max="{{data_params['nrows']//2}}" step="5" oninput="updateParams(this)" disabled>
+                    <br>
+                    <label for="max_features" class="form-label">Max features used per tree <span id="maxfeats_badge" class="badge rounded-pill bg-secondary">{{data_params['ncols']//10}}</span> </label>
+                    <input id="max_features" name="max_features" type="range" class="form-range" value={{data_params['ncols']//10}} min="1" max={{data_params['ncols']}} step="1" oninput="updateParams(this)" disabled>
+                    <br>
+                </form>
+                <button class="btn btn-primary" onclick="submitParams()">Build</button>
             </div>
-            <form method="POST" action="" id="model_form">
-                <label for="ntrees" class="form-label">Number of estimators <span id="ntrees_badge" class="badge rounded-pill bg-secondary">{{data_params['ntrees']}}</span> </label>
-                <input id="ntrees" name="ntrees" type="range" class="form-range" value="{{data_params['ntrees']}}" min="0" max="{{data_params['ncols']}}" step="1" oninput="updateParams(this)" disabled>
-                <br>
-                <label for="max_depth" class="form-label">Max tree depth <span id="depth_badge" class="badge rounded-pill bg-secondary">{{data_params['max_depth']}}</span> </label>
-                <input id="max_depth" name="max_depth" type="range" class="form-range" value="{{data_params['max_depth']}}" min="1" max="20" step="1" oninput="updateParams(this)" disabled>
-                <br>
-                <label for="min_samples_split" class="form-label">Min node size <span id="nodesize_badge" class="badge rounded-pill bg-secondary">{{data_params['min_samples_split']}}</span> </label>
-                <input id="min_samples_split" name="min_samples_split" type="range" class="form-range" value="{{data_params['min_samples_split']}}" min="0" max="{{data_params['nrows']//2}}" step="5" oninput="updateParams(this)" disabled>
-                <br>
-                <label for="min_samples_leaf" class="form-label">Min leaf size <span id="leafsize_badge" class="badge rounded-pill bg-secondary">{{data_params['min_samples_leaf']}}</span> </label>
-                <input id="min_samples_leaf" name="min_samples_leaf" type="range" class="form-range" value="{{data_params['min_samples_leaf']}}" min="0" max="{{data_params['nrows']//2}}" step="5" oninput="updateParams(this)" disabled>
-                <br>
-                <label for="max_features" class="form-label">Max features used per tree <span id="maxfeats_badge" class="badge rounded-pill bg-secondary">{{data_params['ncols']//10}}</span> </label>
-                <input id="max_features" name="max_features" type="range" class="form-range" value={{data_params['ncols']//10}} min="1" max={{data_params['ncols']}} step="1" oninput="updateParams(this)" disabled>
-                <br>
-            </form>
-            <button class="btn btn-primary" onclick="submitParams()">Build</button>
         </div>
         <div class="column col-lg-8">
             <H4>Model details &nbsp; <div id="spinner" class="text-primary"></div></H4>

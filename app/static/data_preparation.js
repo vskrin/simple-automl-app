@@ -186,7 +186,7 @@ function showLoading(){
     while (info.firstChild) {
         info.removeChild(info.firstChild);
     }
-    let loading_txt=document.createTextNode("Building model. This may take up to 30sec depending on the parameters.");
+    let loading_txt=document.createTextNode("Building model. This may take up to 45sec depending on the number of features and dataset size.");
     info.appendChild(loading_txt);
     // update figures
     let fig = document.getElementById("data_fig");
