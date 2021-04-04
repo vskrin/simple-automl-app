@@ -58,7 +58,7 @@ When the app returns the results of the model, it will also provide some additio
 
 If the model was built automatically, the part on "Further info" will contain a figure of the dataset and a figure of the optimization process. If the model was built manually, only the figure of the dataset will be provided.
 
-![sample dataset](https://raw.githubusercontent.com/vskrin/simple-automl-app/master/documentation figures/sample_data.PNG)
+![sample dataset](https://raw.githubusercontent.com/vskrin/simple-automl-app/master/documentation%20figures/sample_data.PNG)
 
 In most cases the dataset will have more than two predictive features, so in order to provide some intuition about the data, the app uses Principal Component Analysis (aka PCA) to plot the dataset in two dimensions. See the figure above for example.
 The last section explains in some detail how the data is generated. 
@@ -67,7 +67,7 @@ In case the modeling was automatic, the app will also return a figure similar to
 
 In the below example, the initial score was between 65 and 70. The second step led to an improvement, but this was followed by a long strech of attempts which did not lead to any better results. There was a small improvement in 12th step and the best result was achieved in step 13. The last two steps did not lead to any further improvement.
 
-![optimization progress](https://raw.githubusercontent.com/vskrin/simple-automl-app/master/documentation figures/opti_progress.PNG)
+![optimization progress](https://raw.githubusercontent.com/vskrin/simple-automl-app/master/documentation%20figures/opti_progress.PNG)
 
 This concludes the review of the application workflow, and the overview of the dataset preparation, the modeling, and the results.
 
